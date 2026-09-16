@@ -68,22 +68,22 @@ and `.env.example` at the repo root.
 > entity's data-model.md constraints verbatim so they aren't left to implementation-time
 > discretion. Everything after schema+migrations is independent-file work and marked `[P]`.
 
-- [ ] T006 Define the `User` model in `backend/prisma/schema.prisma`: `id` (uuid PK),
+- [X] T006 Define the `User` model in `backend/prisma/schema.prisma`: `id` (uuid PK),
   `email` (text, unique), `password_hash` (text), `created_at` (timestamptz). Quote
   data-model.md verbatim: "`email` unique and required; a user MUST hold at least one role
   (enforced via the `UserRole` join table below), and MAY hold more than one simultaneously
   (FR-018, FR-010a)."
-- [ ] T007 Define the `UserRole` model in `backend/prisma/schema.prisma`: `user_id` (FK →
+- [X] T007 Define the `UserRole` model in `backend/prisma/schema.prisma`: `user_id` (FK →
   User), `role` (enum `BUYER`/`APPROVER`/`PROCUREMENT_ADMIN`), `created_at`; composite PK
   `(user_id, role)`. Quote data-model.md verbatim: "A user has zero or more rows here; zero
   is invalid (enforced at the application layer at user-creation time — every user must be
   created with at least one role)." (depends on T006)
-- [ ] T008 Define the `Vendor` model in `backend/prisma/schema.prisma`: `id`, `name` (text),
+- [X] T008 Define the `Vendor` model in `backend/prisma/schema.prisma`: `id`, `name` (text),
   `contact_name`/`contact_email`/`contact_phone` (nullable text), `payment_terms` (text),
   `is_active` (boolean, default `true`), timestamps. Quote data-model.md verbatim: "`name`
   and `payment_terms` required; no uniqueness constraint on `name` (FR-001)." (depends on
   T007)
-- [ ] T009 Define the `PurchaseOrder` model in `backend/prisma/schema.prisma`: `id`,
+- [X] T009 Define the `PurchaseOrder` model in `backend/prisma/schema.prisma`: `id`,
   `order_number` (text, unique), `vendor_id` (FK → Vendor), `status` (enum `DRAFT`/
   `PENDING_APPROVAL`/`APPROVED`/`REJECTED`/`CANCELLED`), `total` (numeric(12,2)),
   `created_by` (FK → User), `submitted_at`/`approved_at`/`rejected_at`/`cancelled_at`
@@ -94,19 +94,19 @@ and `.env.example` at the repo root.
   "`approved_by` must not equal `created_by` (FR-010a, SC-007)" and "`rejection_reason`
   required for reject; `cancellation_reason` required for cancel, and the two are stored in
   distinct columns so they are never conflated." (depends on T008)
-- [ ] T010 Define the `PurchaseOrderLine` model in `backend/prisma/schema.prisma`: `id`,
+- [X] T010 Define the `PurchaseOrderLine` model in `backend/prisma/schema.prisma`: `id`,
   `purchase_order_id` (FK → PurchaseOrder), `description` (text), `quantity` (integer),
   `unit_price` (numeric(12,2)), `received_qty` (integer, default 0), timestamps. Quote
   data-model.md verbatim: "`CHECK (quantity > 0)`", "`CHECK (unit_price >= 0)`", and
   "`CHECK (received_qty <= quantity)` — enforces the *required* concurrency-safe
   over-receipt rule (FR-014)." Note: `outstanding_qty` is **not** a column — "it is always
   computed as `quantity - received_qty` at query/response time." (depends on T009)
-- [ ] T011 Define the `GoodsReceiptEvent` model in `backend/prisma/schema.prisma`: `id`,
+- [X] T011 Define the `GoodsReceiptEvent` model in `backend/prisma/schema.prisma`: `id`,
   `purchase_order_line_id` (FK → PurchaseOrderLine), `quantity` (integer), `received_by`
   (FK → User), `received_at` (timestamptz, default now()). Quote data-model.md verbatim:
   "`quantity > 0` (rejected otherwise, FR-015); insertion only allowed when the parent
   order's status is `APPROVED`." (depends on T010)
-- [ ] T012 Define the `AuditLogEntry` model in `backend/prisma/schema.prisma`: `id`,
+- [X] T012 Define the `AuditLogEntry` model in `backend/prisma/schema.prisma`: `id`,
   `actor_type` (enum `USER`/`SYSTEM`), `actor_user_id` (nullable FK → User), `action`
   (enum/text — `PO_CREATED`, `PO_APPROVED`, `PO_REJECTED`, `PO_CANCELLED`,
   `GOODS_RECEIPT_RECORDED` are the FR-019-required minimum; `PO_SUBMITTED`,
@@ -114,15 +114,15 @@ and `.env.example` at the repo root.
   `entity_type`, `entity_id`, `details` (jsonb), `created_at`. Quote data-model.md verbatim:
   "required when `actor_type = USER`; MUST be `NULL` when `actor_type = SYSTEM`." (depends
   on T011)
-- [ ] T013 Add indexes in `backend/prisma/schema.prisma`: `Vendor.is_active`;
+- [X] T013 Add indexes in `backend/prisma/schema.prisma`: `Vendor.is_active`;
   `PurchaseOrder(vendor_id, status)` and `PurchaseOrder(status, submitted_at)` — "supports
   the outstanding-orders-by-vendor-and-age query (FR-016) without a full scan";
   `PurchaseOrderLine.purchase_order_id`; `GoodsReceiptEvent.purchase_order_line_id`;
   `AuditLogEntry(entity_type, entity_id)` (depends on T012)
-- [ ] T014 Generate the initial structural Prisma migration (tables, FKs, enums — no CHECK
+- [X] T014 Generate the initial structural Prisma migration (tables, FKs, enums — no CHECK
   constraints or triggers yet, since Prisma schema syntax can't express those) by running
   `prisma migrate dev` in `backend/` (depends on T013)
-- [ ] T015 Write a raw-SQL migration in
+- [X] T015 Write a raw-SQL migration in
   `backend/prisma/migrations/<timestamp>_core_constraints_and_triggers/migration.sql`
   adding the CHECK constraints Prisma can't express: `quantity > 0`, `unit_price >= 0`,
   `received_qty <= quantity` on `purchase_order_line`; the reason-required constraint
@@ -133,56 +133,56 @@ and `.env.example` at the repo root.
   `audit_log_entry`. Label this migration's purpose per research.md §11: bonus/
   defense-in-depth backstop, not the load-bearing enforcement (the service layer is)
   (depends on T014)
-- [ ] T016 In the same migration file, add the derived-total trigger (research.md §2):
+- [X] T016 In the same migration file, add the derived-total trigger (research.md §2):
   `AFTER INSERT/UPDATE/DELETE` on `purchase_order_line` recomputes the parent
   `purchase_order.total` as `SUM(quantity * unit_price)` across its lines (depends on T015)
-- [ ] T017 In the same migration file, add the derived-received-quantity trigger
+- [X] T017 In the same migration file, add the derived-received-quantity trigger
   (research.md §2): `AFTER INSERT` on `goods_receipt_event` recomputes the parent line's
   `received_qty` as `SUM(quantity)` across its receipt events — note in a comment that this
   trigger's row lock on the `UPDATE` is what makes concurrent receipts serialize safely
   (research.md §2's concurrency-correctness detail) (depends on T016)
-- [ ] T018a In the same migration file, create the `purchase_order_number_seq` Postgres
+- [X] T018a In the same migration file, create the `purchase_order_number_seq` Postgres
   sequence (research.md §7) (depends on T017)
-- [ ] T018b [P] Implement a pure order-number formatting utility in
+- [X] T018b [P] Implement a pure order-number formatting utility in
   `backend/src/domain/orderNumber.ts`: `formatOrderNumber(sequenceValue, year)` →
   `PO-{YYYY}-{seq:06d}` (research.md §7)
-- [ ] T018c In the same file, implement `generateOrderNumber(tx)` — reads
+- [X] T018c In the same file, implement `generateOrderNumber(tx)` — reads
   `nextval('purchase_order_number_seq')` via the given Prisma transaction client and
   returns `formatOrderNumber(...)`, ready to be called from `raisePurchaseOrder` (T049)
   inside its own transaction (depends on T018a, T018b)
-- [ ] T019 [P] Create the Express app skeleton and Prisma client singleton:
+- [X] T019 [P] Create the Express app skeleton and Prisma client singleton:
   `backend/src/app.ts`, `backend/src/server.ts`, `backend/src/db/prismaClient.ts` (depends
   on T014)
-- [ ] T020 [P] Implement the generic zod-validation middleware in
+- [X] T020 [P] Implement the generic zod-validation middleware in
   `backend/src/middleware/validate.ts`, producing `400 { error: "validation_error",
   details: [...] }` on schema failure (api-contract.md Conventions)
-- [ ] T021 [P] Implement centralized error-handling middleware in
+- [X] T021 [P] Implement centralized error-handling middleware in
   `backend/src/middleware/errorHandler.ts` distinguishing `validation_error` (400) from
   `business_rule_violation` (409/422) from `not_found` (404), per api-contract.md
   Conventions
-- [ ] T022 Implement `POST /api/auth/login` in `backend/src/api/auth.routes.ts`: verifies
+- [X] T022 Implement `POST /api/auth/login` in `backend/src/api/auth.routes.ts`: verifies
   credentials with `bcrypt`, issues a JWT via `jsonwebtoken` with payload `{ sub: userId,
   roles: string[] }` (research.md §5 — "a **list**, not a single role"), returns
   `200 { token, roles: string[] }` or `401` (api-contract.md Auth) (depends on T019)
-- [ ] T023 [P] Implement the `authenticate` middleware (JWT verification) in
+- [X] T023 [P] Implement the `authenticate` middleware (JWT verification) in
   `backend/src/middleware/authenticate.ts` (depends on T019)
-- [ ] T024 Implement the `requireRole(role)` middleware factory in
+- [X] T024 Implement the `requireRole(role)` middleware factory in
   `backend/src/middleware/authorize.ts`, checking `token.roles.includes(role)` — "the
   caller's role set must include this role," never "is the caller's only role this"
   (api-contract.md Conventions, research.md §5) (depends on T023)
-- [ ] T025 [P] Implement `audit.service.ts` in `backend/src/domain/audit.service.ts`:
+- [X] T025 [P] Implement `audit.service.ts` in `backend/src/domain/audit.service.ts`:
   `recordAuditEntry` helper writing an `AuditLogEntry` row inside a caller-supplied Prisma
   transaction, supporting both `actor_type: USER` (with `actorUserId`) and
   `actor_type: SYSTEM` (`actorUserId: null`) (depends on T019)
-- [ ] T026 Write the seed script `backend/prisma/seed.ts` creating four fixture users:
+- [X] T026 Write the seed script `backend/prisma/seed.ts` creating four fixture users:
   one Buyer-only, one Approver-only, one Procurement-Admin-only, and **one holding both
   Buyer and Approver roles** (required for the self-approval test, quickstart.md
   Prerequisites) (depends on T024)
-- [ ] T027 [P] Create `docker-compose.yml` at the repo root (services: `postgres`,
+- [X] T027 [P] Create `docker-compose.yml` at the repo root (services: `postgres`,
   `backend`, `frontend`), `backend/Dockerfile`, `frontend/Dockerfile`, and `.env.example`
   documenting `DATABASE_URL`, `JWT_SECRET`, `APPROVAL_THRESHOLD` (default `5000`), and port
   bindings (research.md §10, quickstart.md Prerequisites)
-- [ ] T028 [P] Configure the Jest + Supertest test harness: `backend/jest.config.*`, a
+- [X] T028 [P] Configure the Jest + Supertest test harness: `backend/jest.config.*`, a
   test-database reset/migrate helper run before the suite (against a real disposable
   Postgres per research.md §9 — "a mocked Prisma client would not actually prove the
   guarantee"), and a supertest app-import helper — `backend/tests/setup.ts`
@@ -207,30 +207,30 @@ purchase order; confirm a deactivated vendor no longer appears as a valid choice
 
 ### Tests for User Story 1
 
-- [ ] T029 [P] [US1] Contract test `POST /api/vendors` in
+- [X] T029 [P] [US1] Contract test `POST /api/vendors` in
   `backend/tests/contract/vendors.create.test.ts`
-- [ ] T030 [P] [US1] Contract test `GET /api/vendors` (incl. `?active=true|false`) in
+- [X] T030 [P] [US1] Contract test `GET /api/vendors` (incl. `?active=true|false`) in
   `backend/tests/contract/vendors.list.test.ts`
-- [ ] T031 [P] [US1] Contract test `GET /api/vendors/:id` in
+- [X] T031 [P] [US1] Contract test `GET /api/vendors/:id` in
   `backend/tests/contract/vendors.get.test.ts`
-- [ ] T032 [P] [US1] Contract test `POST /api/vendors/:id/deactivate` (idempotent if
+- [X] T032 [P] [US1] Contract test `POST /api/vendors/:id/deactivate` (idempotent if
   already inactive) in `backend/tests/contract/vendors.deactivate.test.ts`
-- [ ] T033 [P] [US1] Integration test: creating a vendor with a name that already exists
+- [X] T033 [P] [US1] Integration test: creating a vendor with a name that already exists
   succeeds as a distinct record (spec.md US1 AS4, FR-001: "no uniqueness constraint on
   `name`") in `backend/tests/integration/vendor-duplicate-name.test.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T034 [P] [US1] Implement `vendor.service.ts` — `createVendor`, `listVendors
+- [X] T034 [P] [US1] Implement `vendor.service.ts` — `createVendor`, `listVendors
   (activeFilter)`, `getVendorById`, `deactivateVendor` (idempotent) — writing
   `VENDOR_CREATED`/`VENDOR_DEACTIVATED` audit entries (additional coverage beyond FR-019's
   graded minimum, per spec.md's FR-019 note) — `backend/src/domain/vendor.service.ts`
-- [ ] T035 [US1] Implement zod schemas for the vendor create body and the `?active=`
+- [X] T035 [US1] Implement zod schemas for the vendor create body and the `?active=`
   list-query param in `backend/src/api/vendors.routes.ts`
-- [ ] T036 [US1] Wire `vendors.routes.ts`: `POST` (Buyer), `GET` list (any authenticated),
+- [X] T036 [US1] Wire `vendors.routes.ts`: `POST` (Buyer), `GET` list (any authenticated),
   `GET :id` (any authenticated), `POST :id/deactivate` (Buyer) —
   `backend/src/api/vendors.routes.ts` (depends on T034, T035)
-- [ ] T037 [US1] Mount the vendors router in `backend/src/app.ts` (depends on T036)
+- [X] T037 [US1] Mount the vendors router in `backend/src/app.ts` (depends on T036)
 
 **Checkpoint**: Vendor directory is fully functional and independently testable.
 
