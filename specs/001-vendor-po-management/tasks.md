@@ -249,67 +249,67 @@ always equals the computed sum; confirm no request (including one that tries to 
 
 ### Tests for User Story 2
 
-- [ ] T038 [P] [US2] Contract test `POST /api/purchase-orders` (required, non-empty
+- [X] T038 [P] [US2] Contract test `POST /api/purchase-orders` (required, non-empty
   `lines`) in `backend/tests/contract/purchase-orders.create.test.ts`
-- [ ] T039 [P] [US2] Contract test `GET /api/purchase-orders` (`?vendorId=&status=`) in
+- [X] T039 [P] [US2] Contract test `GET /api/purchase-orders` (`?vendorId=&status=`) in
   `backend/tests/contract/purchase-orders.list.test.ts`
-- [ ] T040 [P] [US2] Contract test `GET /api/purchase-orders/:id` (with lines) in
+- [X] T040 [P] [US2] Contract test `GET /api/purchase-orders/:id` (with lines) in
   `backend/tests/contract/purchase-orders.get.test.ts`
-- [ ] T041 [P] [US2] Contract test `PATCH /api/purchase-orders/:id` (full line replacement,
+- [X] T041 [P] [US2] Contract test `PATCH /api/purchase-orders/:id` (full line replacement,
   DRAFT only) in `backend/tests/contract/purchase-orders.patch.test.ts`
-- [ ] T042 [US2] Integration test: the total is recomputed to equal
+- [X] T042 [US2] Integration test: the total is recomputed to equal
   `sum(quantity × unitPrice)` across create, and add/remove/edit line on a draft (spec.md
   US2 AS1/AS2) in `backend/tests/integration/po-total-integrity.test.ts`
-- [ ] T043 [US2] Integration test: every attempt to set `total` directly (create body,
+- [X] T043 [US2] Integration test: every attempt to set `total` directly (create body,
   patch body) is rejected/ignored and the stored total never disagrees with the line sum
   (spec.md US2 AS3, FR-005, SC-001: "100% of attempts — across every tested code path,
   including direct API calls") in
   `backend/tests/integration/po-total-direct-write-rejected.test.ts`
-- [ ] T043a [US2] Integration test: a create-PO or patch-PO request body containing
+- [X] T043a [US2] Integration test: a create-PO or patch-PO request body containing
   `receivedQty` or `outstandingQty` on a line is rejected `400 validation_error` — the same
   treatment as `total` (api-contract.md Conventions: "Derived fields are never accepted as
   request input"; data-model.md `PurchaseOrderLine` validation rules: "`received_qty` and
   `outstanding_qty` are never accepted as API input") in
   `backend/tests/integration/po-line-derived-field-rejected.test.ts`
-- [ ] T044 [US2] Integration test: creating a PO with an empty or missing `lines` list is
+- [X] T044 [US2] Integration test: creating a PO with an empty or missing `lines` list is
   rejected `400` before any order is created (spec.md US2 AS6, FR-003: "There is no valid
   zero-line state — not at creation") in
   `backend/tests/integration/po-create-requires-line.test.ts`
-- [ ] T045 [US2] Integration test: a draft with exactly one line rejects `PATCH`ing
+- [X] T045 [US2] Integration test: a draft with exactly one line rejects `PATCH`ing
   `lines: []` to remove it, leaving the original line intact (spec.md US2 AS4, FR-004:
   "MUST also reject any edit... that would leave the order with zero line items") in
   `backend/tests/integration/po-cannot-remove-last-line.test.ts`
-- [ ] T046 [US2] Integration test: a line with non-positive quantity or negative unit price
+- [X] T046 [US2] Integration test: a line with non-positive quantity or negative unit price
   is rejected `400` before any order/line is created or modified (spec.md US2 AS5, FR-004)
   in `backend/tests/integration/po-line-validation.test.ts`
-- [ ] T047 [US2] Integration test: creating a PO against a vendor that doesn't exist or is
+- [X] T047 [US2] Integration test: creating a PO against a vendor that doesn't exist or is
   inactive is rejected before any order record is created (spec.md US1 AS3, FR-002 — placed
   here since it needs this story's create endpoint) in
   `backend/tests/integration/po-requires-active-vendor.test.ts`
-- [ ] T048 [US2] Integration test: each created PO gets a unique, human-readable
+- [X] T048 [US2] Integration test: each created PO gets a unique, human-readable
   `orderNumber` (e.g. `PO-2026-000123`), unique even under concurrent creates (spec.md
   FR-003a, research.md §7) in `backend/tests/integration/po-order-number.test.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T049 [US2] Implement `raisePurchaseOrder` in
+- [X] T049 [US2] Implement `raisePurchaseOrder` in
   `backend/src/domain/purchaseOrder.service.ts` — validates the vendor is active (FR-002),
   requires ≥1 line (FR-003), rejects invalid line quantity/price (FR-004), computes the
   total from lines, generates the order number (T018c), writes the lines, records a
   `PO_CREATED` audit entry — all in one Prisma transaction
-- [ ] T050 [US2] Implement `editDraftOrder` in the same file — allows vendor/line edits
+- [X] T050 [US2] Implement `editDraftOrder` in the same file — allows vendor/line edits
   only while `status = DRAFT` (FR-006), rejects any edit that would leave zero lines
   (FR-004), recomputes the total (depends on T049)
-- [ ] T051 [US2] Implement `listPurchaseOrders`/`getPurchaseOrderById` read methods in the
+- [X] T051 [US2] Implement `listPurchaseOrders`/`getPurchaseOrderById` read methods in the
   same file, with lines and `outstandingQty` computed as `quantity - receivedQty` at
   response time (data-model.md) (depends on T049)
-- [ ] T052 [US2] Implement zod schemas: create-PO body (`vendorId` required, `lines`
+- [X] T052 [US2] Implement zod schemas: create-PO body (`vendorId` required, `lines`
   required non-empty array of `{description, quantity > 0, unitPrice >= 0}`) and PATCH body
   (same line shape, non-empty if `lines` supplied) in
   `backend/src/api/purchaseOrders.routes.ts`
-- [ ] T053 [US2] Wire `purchaseOrders.routes.ts`: `POST`, `GET` list, `GET :id`, `PATCH :id`
+- [X] T053 [US2] Wire `purchaseOrders.routes.ts`: `POST`, `GET` list, `GET :id`, `PATCH :id`
   (Buyer for writes, any authenticated for reads) (depends on T049–T052)
-- [ ] T054 [US2] Mount the purchase-orders router in `backend/src/app.ts` (depends on T053)
+- [X] T054 [US2] Mount the purchase-orders router in `backend/src/app.ts` (depends on T053)
 
 **Checkpoint**: Vendors + guaranteed-correct, always-≥1-line purchase orders are fully
 functional and independently testable.
@@ -329,62 +329,62 @@ alter a submitted order regardless of its approval state.
 
 ### Tests for User Story 3
 
-- [ ] T055 [P] [US3] Contract test `POST /api/purchase-orders/:id/submit` in
+- [X] T055 [P] [US3] Contract test `POST /api/purchase-orders/:id/submit` in
   `backend/tests/contract/po-submit.test.ts`
-- [ ] T056 [P] [US3] Contract test `POST /api/purchase-orders/:id/approve` in
+- [X] T056 [P] [US3] Contract test `POST /api/purchase-orders/:id/approve` in
   `backend/tests/contract/po-approve.test.ts`
-- [ ] T057 [P] [US3] Contract test `POST /api/purchase-orders/:id/reject` in
+- [X] T057 [P] [US3] Contract test `POST /api/purchase-orders/:id/reject` in
   `backend/tests/contract/po-reject.test.ts`
-- [ ] T058 [P] [US3] Contract test `POST /api/purchase-orders/:id/cancel` in
+- [X] T058 [P] [US3] Contract test `POST /api/purchase-orders/:id/cancel` in
   `backend/tests/contract/po-cancel.test.ts`
-- [ ] T059 [US3] Integration test: submitting an order at/below `APPROVAL_THRESHOLD`
+- [X] T059 [US3] Integration test: submitting an order at/below `APPROVAL_THRESHOLD`
   auto-approves immediately, no manual step (spec.md US3 AS1, FR-007) in
   `backend/tests/integration/po-auto-approve.test.ts`
-- [ ] T060 [US3] Integration test: submitting an order above the threshold enters
+- [X] T060 [US3] Integration test: submitting an order above the threshold enters
   `PENDING_APPROVAL` (spec.md US3 AS2, FR-007) in
   `backend/tests/integration/po-pending-approval.test.ts`
-- [ ] T061 [US3] Integration test: attempting to `PATCH` a `PENDING_APPROVAL` or `APPROVED`
+- [X] T061 [US3] Integration test: attempting to `PATCH` a `PENDING_APPROVAL` or `APPROVED`
   order's lines/vendor/total — including specifically trying to push the total across the
   threshold — is rejected `409` with a specific "order is locked" error every time (spec.md
   US3 AS5, FR-008/FR-009 — the direct mid-approval-threshold-crossing answer, quickstart.md
   Scenario 3 step 3) in `backend/tests/integration/po-locked-after-submission.test.ts`
-- [ ] T062 [US3] Integration test: an Approver approves a pending order → `APPROVED`;
+- [X] T062 [US3] Integration test: an Approver approves a pending order → `APPROVED`;
   rejects with a reason → `REJECTED` with that reason stored; rejecting without a reason is
   refused `400` (spec.md US3 AS3/AS4, FR-010) in
   `backend/tests/integration/po-approve-reject.test.ts`
-- [ ] T063 [US3] Integration test: the user who raised a PO cannot approve it even while
+- [X] T063 [US3] Integration test: the user who raised a PO cannot approve it even while
   also holding the Approver role — an identity check, not a role check — using the seeded
   Buyer+Approver fixture (spec.md US3 AS8, FR-010a, SC-007) in
   `backend/tests/integration/po-self-approval-rejected.test.ts`
-- [ ] T064 [US3] Integration test: cancelling an approved order requires a reason (`400`
+- [X] T064 [US3] Integration test: cancelling an approved order requires a reason (`400`
   without one), and the reason is stored distinctly from any rejection reason (spec.md US3
   AS6/AS7, FR-011) in `backend/tests/integration/po-cancel-requires-reason.test.ts`
-- [ ] T065 [US3] Integration test: approving/rejecting/cancelling a Draft order, or an
+- [X] T065 [US3] Integration test: approving/rejecting/cancelling a Draft order, or an
   order already Approved/Rejected/Cancelled, is rejected as an invalid state transition
   (spec.md Edge Cases) in `backend/tests/integration/po-invalid-state-transitions.test.ts`
-- [ ] T066 [US3] Integration test: two concurrent approval requests on the same pending
+- [X] T066 [US3] Integration test: two concurrent approval requests on the same pending
   order — only one decision is recorded, the other rejected (spec.md Edge Cases,
   Constitution Principle V) via `Promise.all` in
   `backend/tests/integration/po-concurrent-approval.test.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T067 [US3] Implement `submitPurchaseOrder` in
+- [X] T067 [US3] Implement `submitPurchaseOrder` in
   `backend/src/domain/approval.service.ts` — requires ≥1 line as redundant defense-in-depth
   (FR-004), reads `APPROVAL_THRESHOLD` from env, decides `APPROVED` vs `PENDING_APPROVAL`,
   locks the order against further edits (FR-008), writes a `PO_SUBMITTED` audit entry plus
   — for auto-approval — a `PO_APPROVED` entry with `actor_type: SYSTEM` (data-model.md
   "When SYSTEM is used")
-- [ ] T068 [US3] Implement `approvePurchaseOrder` in the same file — `SELECT ... FOR UPDATE`
+- [X] T068 [US3] Implement `approvePurchaseOrder` in the same file — `SELECT ... FOR UPDATE`
   on the order row (concurrency-safe decision, T066), rejects if not `PENDING_APPROVAL`,
   rejects if `approverId === order.createdBy` (FR-010a), writes a `PO_APPROVED` audit entry
   (depends on T067)
-- [ ] T069 [US3] Implement `rejectPurchaseOrder` and `cancelPurchaseOrder` in the same
+- [X] T069 [US3] Implement `rejectPurchaseOrder` and `cancelPurchaseOrder` in the same
   file — both require a `reason`, each written to its own distinct column, each writing a
   `PO_REJECTED`/`PO_CANCELLED` audit entry (depends on T067)
-- [ ] T070 [US3] Implement zod schemas requiring a non-empty `reason` string for the
+- [X] T070 [US3] Implement zod schemas requiring a non-empty `reason` string for the
   reject/cancel request bodies in `backend/src/api/purchaseOrders.routes.ts`
-- [ ] T071 [US3] Wire the submit/approve/reject/cancel routes onto
+- [X] T071 [US3] Wire the submit/approve/reject/cancel routes onto
   `purchaseOrders.routes.ts` (Buyer for submit, Approver for approve/reject/cancel)
   (depends on T067–T070)
 
