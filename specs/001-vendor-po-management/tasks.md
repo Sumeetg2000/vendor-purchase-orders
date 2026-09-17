@@ -405,26 +405,26 @@ attempt is rejected every time, including concurrently.
 
 ### Tests for User Story 4
 
-- [ ] T072 [P] [US4] Contract test `POST /api/purchase-orders/:id/lines/:lineId/receipts`
+- [X] T072 [P] [US4] Contract test `POST /api/purchase-orders/:id/lines/:lineId/receipts`
   in `backend/tests/contract/po-receipts.create.test.ts`
-- [ ] T073 [P] [US4] Contract test `GET /api/purchase-orders/:id/lines/:lineId/receipts` in
+- [X] T073 [P] [US4] Contract test `GET /api/purchase-orders/:id/lines/:lineId/receipts` in
   `backend/tests/contract/po-receipts.list.test.ts`
-- [ ] T074 [US4] Integration test: a partial receipt updates `receivedQty`/`outstandingQty`
+- [X] T074 [US4] Integration test: a partial receipt updates `receivedQty`/`outstandingQty`
   correctly; a second partial receipt on the same line accumulates correctly (spec.md US4
   AS1/AS2) in `backend/tests/integration/po-receipt-partial.test.ts`
-- [ ] T075 [US4] Integration test: a receipt that would push received quantity above
+- [X] T075 [US4] Integration test: a receipt that would push received quantity above
   ordered quantity is rejected `409`, recorded quantity unchanged (spec.md US4 AS3, FR-014,
   SC-002) in `backend/tests/integration/po-receipt-over-receipt.test.ts`
-- [ ] T076 [US4] Integration test: two concurrent receipt requests on the same line where
+- [X] T076 [US4] Integration test: two concurrent receipt requests on the same line where
   only one fits — exactly one succeeds, the other is rejected, received quantity never
   exceeds ordered quantity (spec.md US4 AS4, FR-014, SC-002) via `Promise.all` in
   `backend/tests/integration/po-receipt-concurrent.test.ts`
-- [ ] T077 [US4] Integration test: a receipt against a Cancelled, Draft, or
+- [X] T077 [US4] Integration test: a receipt against a Cancelled, Draft, or
   Pending-Approval order is rejected (spec.md US4 AS5, Edge Cases, FR-015) in
   `backend/tests/integration/po-receipt-requires-approved.test.ts`
-- [ ] T078 [US4] Integration test: a receipt with zero or negative quantity is rejected
+- [X] T078 [US4] Integration test: a receipt with zero or negative quantity is rejected
   (spec.md Edge Cases, FR-015) in `backend/tests/integration/po-receipt-validation.test.ts`
-- [ ] T078a [US4] Integration test: a goods-receipt request body containing `receivedQty`
+- [X] T078a [US4] Integration test: a goods-receipt request body containing `receivedQty`
   or `outstandingQty` (instead of or alongside `quantity`) is rejected
   `400 validation_error` — the same treatment as `total` (api-contract.md Conventions;
   data-model.md `PurchaseOrderLine` validation rules) in
@@ -432,14 +432,14 @@ attempt is rejected every time, including concurrently.
 
 ### Implementation for User Story 4
 
-- [ ] T079 [US4] Implement `receiveGoods` in
+- [X] T079 [US4] Implement `receiveGoods` in
   `backend/src/domain/goodsReceipt.service.ts` — checks the parent order's
   `status = APPROVED` (FR-015), validates `quantity > 0`, inserts the `GoodsReceiptEvent`
   (trigger + `CHECK (received_qty <= quantity)` recompute/reject per research.md §2),
   writes a `GOODS_RECEIPT_RECORDED` audit entry
-- [ ] T080 [US4] Implement the zod schema for the receipt body (`quantity` positive
+- [X] T080 [US4] Implement the zod schema for the receipt body (`quantity` positive
   integer) in `backend/src/api/purchaseOrders.routes.ts`
-- [ ] T081 [US4] Wire the receipts `POST`/`GET` routes onto `purchaseOrders.routes.ts`
+- [X] T081 [US4] Wire the receipts `POST`/`GET` routes onto `purchaseOrders.routes.ts`
   (Buyer for `POST`, any authenticated for `GET`) (depends on T079, T080)
 
 **Checkpoint**: Goods receipt integrity is fully functional and independently testable on
