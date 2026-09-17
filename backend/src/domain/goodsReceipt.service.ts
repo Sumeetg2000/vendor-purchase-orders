@@ -27,12 +27,14 @@ function isCheckConstraintViolation(err: unknown): boolean {
  * `quantity > 0` is gated by zod (T080) before this runs. Over-receipt
  * rejection is NOT re-implemented here in application code — it's enforced
  * by the Phase 2 DB trigger (recomputes `received_qty`) + `CHECK
- * (received_qty <= quantity)`, which is safe under concurrency because the
- * trigger's own `UPDATE` on the line takes an ordinary Postgres row lock
- * (research.md §2): a second concurrent receipt on the same line blocks
- * until the first commits, then re-evaluates against the true committed
- * total. This function only translates that DB-level rejection into the
- * same business_rule_violation shape as an application-level check.
+ * (received_qty <= quantity)`. Concurrency-safety requires the trigger to
+ * explicitly lock the line row (`FOR UPDATE`) *before* a separate recompute
+ * statement (research.md §2, migration `fix_line_receipt_lock_race`) — a
+ * single combined lock+recompute UPDATE is NOT sufficient under READ
+ * COMMITTED, since the recompute subquery's snapshot is taken before the
+ * statement blocks and isn't refreshed on unblock. This function only
+ * translates that DB-level rejection into the same business_rule_violation
+ * shape as an application-level check.
  */
 export async function receiveGoods(
   actorUserId: string,

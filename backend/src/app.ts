@@ -2,6 +2,7 @@ import express from "express";
 import { authRouter } from "./api/auth.routes.ts";
 import { vendorsRouter } from "./api/vendors.routes.ts";
 import { purchaseOrdersRouter } from "./api/purchaseOrders.routes.ts";
+import { reportsRouter } from "./api/reports.routes.ts";
 import { errorHandler } from "./middleware/errorHandler.ts";
 
 /**
@@ -23,6 +24,7 @@ export function createApp() {
   app.use("/api/auth", authRouter);
   app.use("/api/vendors", vendorsRouter);
   app.use("/api/purchase-orders", purchaseOrdersRouter);
+  app.use("/api/reports", reportsRouter);
 
   // Centralized error handler — MUST stay last.
   app.use(errorHandler);

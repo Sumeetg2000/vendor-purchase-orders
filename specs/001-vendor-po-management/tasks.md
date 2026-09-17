@@ -459,19 +459,19 @@ ones, correctly filtered and aged, without exercising any other feature first.
 
 ### Tests for User Story 5
 
-- [ ] T082 [P] [US5] Contract test `GET /api/reports/outstanding-orders` in
+- [X] T082 [P] [US5] Contract test `GET /api/reports/outstanding-orders` in
   `backend/tests/contract/reports.outstanding-orders.test.ts`
-- [ ] T083 [US5] Integration test: only `APPROVED` orders with ≥1 line where
+- [X] T083 [US5] Integration test: only `APPROVED` orders with ≥1 line where
   `receivedQty < quantity` are returned; every Draft/Pending Approval/Rejected/Cancelled
   order is excluded, including a Cancelled order partially received before cancellation
   (spec.md US5 AS1/AS5, FR-016) in `backend/tests/integration/report-exact-filter.test.ts`
-- [ ] T084 [US5] Integration test: `?vendorId=` returns only that vendor's outstanding
+- [X] T084 [US5] Integration test: `?vendorId=` returns only that vendor's outstanding
   orders (spec.md US5 AS2) in `backend/tests/integration/report-vendor-filter.test.ts`
-- [ ] T085 [US5] Integration test: `ageDays` is computed from `submittedAt`, not
+- [X] T085 [US5] Integration test: `ageDays` is computed from `submittedAt`, not
   `approvedAt` — an order that sat in Pending Approval for a while shows its full
   submission-based age after approval (spec.md US5 AS3, research.md §13) in
   `backend/tests/integration/report-age-reference-point.test.ts`
-- [ ] T086 [US5] Performance test: using the seeded ≥10,000-order/≥50,000-line dataset,
+- [X] T086 [US5] Performance test: using the seeded ≥10,000-order/≥50,000-line dataset,
   request a page (`pageSize=50`), assert response time < 2s, and run `EXPLAIN ANALYZE` to
   confirm the `(vendor_id, status)`/`(status, submitted_at)` indexes are used rather than a
   sequential scan (spec.md US5 AS4, SC-004, research.md §12) in
@@ -480,18 +480,18 @@ ones, correctly filtered and aged, without exercising any other feature first.
 
 ### Implementation for User Story 5
 
-- [ ] T087 [US5] Write a dataset seed/generator script producing ≥10,000 purchase orders /
+- [X] T087 [US5] Write a dataset seed/generator script producing ≥10,000 purchase orders /
   ≥50,000 lines with varied vendors, statuses, and `submitted_at` timestamps, for
   performance testing (research.md §12) in `backend/prisma/seed-perf.ts`
-- [ ] T088 [US5] Implement `outstandingOrdersByVendorAndAge` in
+- [X] T088 [US5] Implement `outstandingOrdersByVendorAndAge` in
   `backend/src/domain/reporting.service.ts` — one indexed SQL query
   (`status = 'APPROVED' AND EXISTS (line where received_qty < quantity)`), computes
   `ageDays` from `submitted_at`, supports `vendorId`/`minAgeDays`/`maxAgeDays` filters and
   `page`/`pageSize` pagination, entirely database-side (FR-016, Constitution Principle IX)
-- [ ] T089 [US5] Implement the zod schema for report query params and wire
+- [X] T089 [US5] Implement the zod schema for report query params and wire
   `GET /api/reports/outstanding-orders` (Procurement Admin only) in
   `backend/src/api/reports.routes.ts` (depends on T088)
-- [ ] T090 [US5] Mount the reports router in `backend/src/app.ts` (depends on T089)
+- [X] T090 [US5] Mount the reports router in `backend/src/app.ts` (depends on T089)
 
 **Checkpoint**: All five user stories are independently functional.
 

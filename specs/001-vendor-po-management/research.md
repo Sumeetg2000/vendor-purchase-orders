@@ -51,19 +51,34 @@ regardless of which client issued the write, including a hypothetical direct SQL
 that additional reach is the bonus hardening noted above, not part of what FR-005/FR-013/
 FR-014 or the rubric actually ask for.
 
-**Concurrency correctness detail (important, not obvious from the constraint alone)**: A
-CHECK constraint by itself does not prevent two concurrent transactions from each reading
-a "safe" pre-update value and both committing an over-receipt — constraints are evaluated
-per-statement, not against a serialized view of concurrent writers. What actually makes
-this safe here is that the trigger's `UPDATE` on `purchase_order_line` takes a standard
-Postgres row-level lock on that line. A second concurrent goods-receipt transaction
-touching the *same line* blocks on that lock until the first transaction commits or rolls
-back, then re-reads the now-current `received_qty` before its own `CHECK` is evaluated.
-The two writes are serialized by ordinary row locking; the CHECK constraint then correctly
-rejects whichever one would over-receive. This satisfies Constitution Principle V ("do not
-rely on application-memory checks alone") without needing an explicit
-`SELECT ... FOR UPDATE` in application code for this specific path — the DB does it via
-the trigger's own `UPDATE` statement.
+**Concurrency correctness detail (important, not obvious from the constraint alone; revised
+after a confirmed bug — see below)**: A CHECK constraint by itself does not prevent two
+concurrent transactions from each reading a "safe" pre-update value and both committing an
+over-receipt — constraints are evaluated per-statement, not against a serialized view of
+concurrent writers. Row locking is required to serialize the two writes so the CHECK sees
+the *other* transaction's committed effect before it is evaluated.
+
+An earlier version of this trigger relied on a single `UPDATE ... SET received_qty =
+(SELECT SUM(...) ...) WHERE id = ...` to both acquire that row lock and recompute in one
+statement. That was **confirmed broken by direct reproduction** against Postgres (two
+concurrent goods-receipt transactions on the same line, one held open across a deliberate
+delay): under READ COMMITTED, when Postgres unblocks a transaction that was waiting on the
+row lock (EvalPlanQual), it re-fetches only the current version of the row the `UPDATE`
+targets — it does **not** take a fresh snapshot for the `SUM(...)` subquery against
+`goods_receipt_events`. So the waiter's subquery still only saw its own row, not the
+committing transaction's now-committed receipt, and both transactions could commit with a
+combined `received_qty` exceeding `quantity`. This surfaced as an intermittent (roughly
+40%) test flake, not a deterministic failure, because it only manifests when the second
+transaction's `UPDATE` statement actually has to block.
+
+The fix (see `20260917081012_fix_line_receipt_lock_race`): explicitly acquire the row lock
+first with `PERFORM 1 FROM purchase_order_lines WHERE id = ... FOR UPDATE`, then recompute
+in a **separate, subsequent** `UPDATE` statement. That second statement takes its own fresh
+READ COMMITTED snapshot once the lock is actually held, so it correctly sees whatever the
+other transaction just committed. This satisfies Constitution Principle V ("do not rely on
+application-memory checks alone") without needing an explicit `SELECT ... FOR UPDATE` in
+application code for this specific path — the DB does it via the trigger — but it requires
+the lock-then-recompute split, not a single combined statement.
 
 **Alternatives considered**: Compute-on-read (rejected — user's explicit decision favors
 stored-and-synced; compute-on-read would also make the outstanding-orders-by-vendor-and-age
