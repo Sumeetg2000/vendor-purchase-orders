@@ -501,31 +501,31 @@ ones, correctly filtered and aged, without exercising any other feature first.
 
 **Purpose**: Concerns that span multiple stories.
 
-- [ ] T091 [P] Contract test `GET /api/purchase-orders/:id/audit-log` in
+- [X] T091 [P] Contract test `GET /api/purchase-orders/:id/audit-log` in
   `backend/tests/contract/audit-log.test.ts`
-- [ ] T092 Integration test: every PO creation, approval decision (approve/reject),
+- [X] T092 Integration test: every PO creation, approval decision (approve/reject),
   cancellation, and goods receipt produces a structured audit record identifying actor,
   action, target, and timestamp — the FR-019 **required minimum** (spec.md FR-019, SC-005)
   in `backend/tests/integration/audit-required-minimum.test.ts`
-- [ ] T093 Integration test: an auto-approved order's audit log contains both a
+- [X] T093 Integration test: an auto-approved order's audit log contains both a
   `PO_SUBMITTED` (`actorType: USER`) entry and a `PO_APPROVED` (`actorType: SYSTEM`,
   `actorUserId: null`) entry (data-model.md "When SYSTEM is used") in
   `backend/tests/integration/audit-system-actor.test.ts`
-- [ ] T094 Integration test: every route rejects an unauthenticated request `401`, and
+- [X] T094 Integration test: every route rejects an unauthenticated request `401`, and
   rejects a caller whose role set doesn't permit the action `403` (spec.md SC-006,
   quickstart.md Authentication & authorization sanity checks) in
   `backend/tests/integration/authz-sanity.test.ts`
-- [ ] T095 Implement `GET /api/purchase-orders/:id/audit-log` in
+- [X] T095 Implement `GET /api/purchase-orders/:id/audit-log` in
   `backend/src/api/purchaseOrders.routes.ts`, returning a chronological
   `AuditLogEntry[]` for that order (depends on T049, T067, T079 having audit-writing in
   place)
-- [ ] T096 [P] Build minimal frontend pages per plan.md's Project Structure — Vendor list,
+- [X] T096 [P] Build minimal frontend pages per plan.md's Project Structure — Vendor list,
   Raise PO, Approvals queue, Outstanding Orders report — in `frontend/src/pages/` (React,
   plain JavaScript, calling the API only; no business-rule logic, per Constitution
   Principle I)
-- [ ] T097 [P] Finalize `.env.example` and a README section confirming `docker compose up`
+- [X] T097 [P] Finalize `.env.example` and a README section confirming `docker compose up`
   plus the documented `.env` file is the only required setup step (spec.md Assumption)
-- [ ] T098 Run the full `quickstart.md` validation guide end-to-end against a freshly
+- [X] T098 Run the full `quickstart.md` validation guide end-to-end against a freshly
   started `docker compose up` stack and confirm every scenario's expected outcome
   (depends on all prior tasks)
 

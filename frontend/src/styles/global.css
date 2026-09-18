@@ -1,0 +1,431 @@
+@import "./tokens.css";
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  margin: 0 0 var(--space-4);
+}
+
+h1 {
+  font-size: 1.25rem;
+}
+
+h2 {
+  font-size: 1.05rem;
+}
+
+h3 {
+  font-size: 0.9rem;
+  color: var(--color-ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Monospace/tabular figures without forcing right-alignment — for identifier
+   columns (order numbers) that read left-to-right like a label, not a value. */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* App shell: fixed left sidebar + scrollable content */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-content {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-6) var(--space-7);
+}
+
+.app-content > .page + .page {
+  margin-top: var(--space-6);
+}
+
+.brand {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+/* Sidebar nav */
+
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-hairline);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4) var(--space-2);
+  gap: var(--space-1);
+}
+
+.sidebar-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--color-ink-soft);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.sidebar-link:hover {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.sidebar-link.active {
+  background: var(--color-paper);
+  color: var(--color-brass-dark);
+  font-weight: 600;
+  border-left: 2px solid var(--color-brass);
+  padding-left: calc(var(--space-3) - 2px);
+}
+
+.sidebar-user {
+  margin-top: auto;
+  padding: var(--space-4) var(--space-3);
+  border-top: 1px solid var(--color-hairline);
+  font-size: 0.8rem;
+  color: var(--color-ink-soft);
+}
+
+.sidebar-user .email {
+  display: block;
+  color: var(--color-ink);
+  margin-bottom: var(--space-1);
+  word-break: break-all;
+}
+
+.sidebar-user .roles {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  margin-bottom: var(--space-3);
+}
+
+/* Buttons */
+
+button {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.btn {
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  color: var(--color-ink);
+  padding: var(--space-2) var(--space-3);
+}
+
+.btn:hover {
+  border-color: var(--color-brass);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn-primary {
+  background: var(--color-brass);
+  border: 1px solid var(--color-brass);
+  color: var(--color-paper);
+  padding: var(--space-2) var(--space-4);
+  font-weight: 500;
+}
+
+.btn-primary:hover {
+  background: var(--color-brass-dark);
+  border-color: var(--color-brass-dark);
+}
+
+.btn-link {
+  background: transparent;
+  border: none;
+  color: var(--color-brass-dark);
+  padding: var(--space-1) 0;
+  text-decoration: underline;
+}
+
+.btn-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Forms */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: 0.85rem;
+}
+
+.field label,
+label {
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+}
+
+input,
+select,
+textarea {
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: var(--color-ink);
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: 3px;
+  padding: var(--space-2) var(--space-3);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-brass);
+}
+
+input[type="number"] {
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+.form-row {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.form-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+/* Ledger-style tables */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+thead th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-ink-soft);
+  border-bottom: 1px solid var(--color-ink);
+  padding: var(--space-2) var(--space-3);
+}
+
+tbody td {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-hairline);
+  vertical-align: middle;
+}
+
+tbody tr:hover {
+  background: rgba(156, 107, 46, 0.05);
+}
+
+th.num,
+td.num {
+  text-align: right;
+}
+
+.table-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.empty-row td {
+  color: var(--color-ink-soft);
+  font-style: italic;
+  text-align: center;
+  padding: var(--space-5);
+}
+
+/* Status tags */
+
+.status-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px var(--space-2);
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.status-tag.status-draft {
+  background: var(--color-status-draft-bg);
+  color: var(--color-status-draft-fg);
+}
+
+.status-tag.status-pending_approval {
+  background: var(--color-status-pending-bg);
+  color: var(--color-status-pending-fg);
+}
+
+.status-tag.status-approved {
+  background: var(--color-status-approved-bg);
+  color: var(--color-status-approved-fg);
+}
+
+.status-tag.status-rejected {
+  background: var(--color-status-rejected-bg);
+  color: var(--color-status-rejected-fg);
+}
+
+.status-tag.status-cancelled {
+  background: var(--color-status-cancelled-bg);
+  color: var(--color-status-cancelled-fg);
+}
+
+/* Feedback */
+
+.error-text {
+  color: var(--color-status-rejected-fg);
+  font-size: 0.85rem;
+  margin: 0 0 var(--space-3);
+}
+
+.hint-text {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+}
+
+/* Login screen */
+
+.login-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  width: 22rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  padding: var(--space-6);
+}
+
+.login-card .field + .field {
+  margin-top: var(--space-3);
+}
+
+.login-card button[type="submit"] {
+  margin-top: var(--space-5);
+  width: 100%;
+}
+
+/* Modal (used for cancel/receipt/audit-log dialogs) */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(27, 36, 48, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.modal-panel {
+  width: 26rem;
+  max-width: calc(100vw - var(--space-6));
+  max-height: calc(100vh - var(--space-6));
+  overflow-y: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  padding: var(--space-5);
+}
+
+.modal-panel .field + .field {
+  margin-top: var(--space-3);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.audit-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.audit-log-entry {
+  border-bottom: 1px solid var(--color-hairline);
+  padding-bottom: var(--space-2);
+  font-size: 0.82rem;
+}
+
+.audit-log-entry .action {
+  font-weight: 600;
+}
+
+.audit-log-entry .meta {
+  color: var(--color-ink-soft);
+  font-size: 0.75rem;
+}

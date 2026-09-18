@@ -1,4 +1,6 @@
-import type { Prisma, AuditAction, AuditEntityType } from "@prisma/client";
+import type { AuditLogEntry, Prisma, AuditAction, AuditEntityType } from "@prisma/client";
+import { prisma } from "../db/prismaClient.ts";
+import { NotFoundError } from "./errors.ts";
 
 type TransactionClient = Prisma.TransactionClient;
 
@@ -36,5 +38,37 @@ export async function recordAuditEntry(
       entityId: input.entityId,
       details: input.details,
     },
+  });
+}
+
+/**
+ * T095: chronological audit trail "for dispute resolution" (api-contract.md)
+ * for a single purchase order — includes both entries recorded directly
+ * against the order (PO_CREATED/SUBMITTED/APPROVED/REJECTED/CANCELLED) and
+ * entries recorded against its lines (GOODS_RECEIPT_RECORDED, entityType
+ * PurchaseOrderLine), since a receipt is part of that order's history even
+ * though audit.service.ts records it against the line it was received on.
+ */
+export async function listAuditLogForOrder(purchaseOrderId: string): Promise<AuditLogEntry[]> {
+  const order = await prisma.purchaseOrder.findUnique({
+    where: { id: purchaseOrderId },
+    include: { lines: true },
+  });
+  if (!order) {
+    throw new NotFoundError();
+  }
+
+  const lineIds = order.lines.map((line) => line.id);
+
+  return prisma.auditLogEntry.findMany({
+    where: {
+      OR: [
+        { entityType: "PurchaseOrder", entityId: purchaseOrderId },
+        ...(lineIds.length > 0
+          ? [{ entityType: "PurchaseOrderLine" as const, entityId: { in: lineIds } }]
+          : []),
+      ],
+    },
+    orderBy: { createdAt: "asc" },
   });
 }

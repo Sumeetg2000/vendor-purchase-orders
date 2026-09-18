@@ -18,6 +18,7 @@ import {
   cancelPurchaseOrder,
 } from "../domain/approval.service.ts";
 import { receiveGoods, listGoodsReceiptEvents } from "../domain/goodsReceipt.service.ts";
+import { listAuditLogForOrder } from "../domain/audit.service.ts";
 
 /**
  * `.strict()` on the line and top-level shapes: api-contract.md's Conventions
@@ -176,5 +177,15 @@ purchaseOrdersRouter.get(
   asyncHandler(async (req, res) => {
     const events = await listGoodsReceiptEvents(req.params.id!, req.params.lineId!);
     res.status(200).json(events);
+  }),
+);
+
+/** T095/api-contract.md: GET /api/purchase-orders/:id/audit-log (any authenticated). */
+purchaseOrdersRouter.get(
+  "/:id/audit-log",
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const entries = await listAuditLogForOrder(req.params.id!);
+    res.status(200).json(entries);
   }),
 );

@@ -1,0 +1,33 @@
+:root {
+  --color-paper: #f7f6f3;
+  --color-ink: #1b2430;
+  --color-ink-soft: #545e6b;
+  --color-brass: #9c6b2e;
+  --color-brass-dark: #7d5624;
+  --color-hairline: #e1dfd9;
+  --color-surface: #ffffff;
+
+  --color-status-draft-bg: #eceae4;
+  --color-status-draft-fg: #5c5646;
+  --color-status-pending-bg: #f4e3c4;
+  --color-status-pending-fg: #8a5a12;
+  --color-status-approved-bg: #dde8dd;
+  --color-status-approved-fg: #2f5f3a;
+  --color-status-rejected-bg: #f1dad8;
+  --color-status-rejected-fg: #9b342b;
+  --color-status-cancelled-bg: #e6e4e1;
+  --color-status-cancelled-fg: #6b6459;
+
+  --font-ui: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --sidebar-width: 15rem;
+}
