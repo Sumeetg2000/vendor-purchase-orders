@@ -252,9 +252,10 @@ showing accurate age, without requiring any other feature to be exercised first.
 ### Functional Requirements
 
 - **FR-001**: The system MUST maintain a vendor directory recording, at minimum, each
-  vendor's name, contact details, payment terms, and an active/inactive status. Vendor
-  names are not required to be unique — the system distinguishes vendor records solely by
-  their internal identifier, and duplicate names are permitted.
+  vendor's name, payment terms, and an active/inactive status, with optional contact
+  details (contact name, email, phone). Vendor names are not required to be unique — the
+  system distinguishes vendor records solely by their internal identifier, and duplicate
+  names are permitted.
 - **FR-002**: The system MUST reject creation of a purchase order that references a vendor
   that does not exist or is inactive, before any order record is created.
 - **FR-003**: The system MUST allow a purchase order to be created in a draft state, and

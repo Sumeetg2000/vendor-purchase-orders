@@ -6,19 +6,32 @@ decisions or by a small set of implementation-detail research tasks below. No
 
 ## 1. Backend language: TypeScript vs. plain JS
 
-**Decision**: Backend (Express + Prisma) is written in TypeScript. Frontend (React) is
-written in plain JavaScript.
+**Original decision**: Backend (Express + Prisma) is written in TypeScript. Frontend
+(React) is written in plain JavaScript.
 
-**Rationale**: The user's technical decisions state the frontend stays plain JS "to keep
-scope tight — Prisma types already give strong backend safety." That reasoning only holds
-if the backend consumes Prisma's generated types, i.e. the backend is TypeScript. This
-also gives compile-time protection around the derived-value logic (Constitution
-Principles II/IV) without adding a second type system on the frontend, where the payoff is
-smaller for a 2-week POC.
+**Original rationale**: The user's technical decisions state the frontend stays plain JS
+"to keep scope tight — Prisma types already give strong backend safety." That reasoning
+only holds if the backend consumes Prisma's generated types, i.e. the backend is
+TypeScript. This also gives compile-time protection around the derived-value logic
+(Constitution Principles II/IV) without adding a second type system on the frontend, where
+the payoff is smaller for a 2-week POC.
 
-**Alternatives considered**: Plain JS on both sides (rejected — loses Prisma's generated
-types, the exact thing the user cited as the reason TS wasn't needed on the frontend).
-TypeScript on both sides (rejected — the user explicitly scoped the frontend to plain JS).
+**Alternatives considered at the time**: Plain JS on both sides (rejected — loses Prisma's
+generated types, the exact thing the user cited as the reason TS wasn't needed on the
+frontend). TypeScript on both sides (rejected — the user explicitly scoped the frontend to
+plain JS).
+
+**Superseded**: The frontend was later written in TypeScript (`.tsx`/`.ts`) instead of
+plain JavaScript, during subsequent UI work. This happened without a formal re-decision
+recorded at the time — there is no documented rationale from that point distinguishing it
+from the original plain-JS scope decision above. Retroactively, the most plausible
+practical reason is type safety on component props and API response shapes as the frontend
+grew past the initial scaffolding, but that is this document's own inference after the
+fact, not a reason that was actually recorded when the switch happened. Plan.md and
+README.md have been updated to describe the frontend as TypeScript, matching the current,
+working codebase; this section is left as the historical record of the original decision
+plus this correction, rather than rewritten to look as if TypeScript was the plan from the
+start.
 
 ## 2. Enforcing derived-value integrity at the database level
 
@@ -379,3 +392,25 @@ required behavior; Constitution Principle XII, Scope Control).
 **Where this is stated**: spec.md's Assumptions (age decision) and FR-016; this section
 for the formal Decision/Rationale/Alternatives record;
 `contracts/api-contract.md`'s reporting endpoint (`ageDays` defined against `submittedAt`).
+
+## 14. Express 4 vs. 5
+
+**Decision**: The API is built on Express 4 (`^4.22.3`), not Express 5.
+
+**Rationale**: Express 5 had only recently reached general stable release at the time this
+project was built, so its middleware and example ecosystem was noticeably thinner than
+Express 4's — a real consideration for a fixed 2-week solo POC where time spent working
+around unfamiliar or less-documented edges of a newer major version is time not spent on
+the actual domain logic the assignment is graded on. Express 4 is mature, its behavior with
+the async route-handler and error-middleware patterns used throughout this codebase
+(`asyncHandler.ts`, `errorHandler.ts`) is well understood, and nothing in this project's
+requirements depends on anything Express 5 adds.
+
+**Alternatives considered**: Express 5 (rejected for the reason above — a newer major
+version's thinner ecosystem is an avoidable risk for a time-boxed solo build, with no
+corresponding requirement pulling toward it).
+
+**Note on when this was decided**: This decision was made when the backend project was
+first initialized (`package.json` has pinned Express 4 since that commit), but it was never
+written down at the time — this section records it retroactively, now, rather than at the
+original decision point.
