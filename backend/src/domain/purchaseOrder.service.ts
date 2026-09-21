@@ -88,13 +88,27 @@ export async function raisePurchaseOrder(
  * T050: only DRAFT orders are editable (FR-006/FR-008/FR-009). A `lines`
  * array, when supplied, is a full replacement — already guaranteed non-empty
  * by the PATCH zod schema (T052), so "zero lines" can't reach here either.
+ *
+ * `SELECT ... FOR UPDATE` locks the order row for the rest of the
+ * transaction, the same pattern approvePurchaseOrder uses — without it, this
+ * function's status check (a plain unlocked read) and its line writes were
+ * two separate steps with no atomicity between them, so a concurrent
+ * `submitPurchaseOrder` could commit (locking the order) in the gap between
+ * the two, letting an edit started against a stale "still DRAFT" read land
+ * on an order that has already left DRAFT (FR-008). With the row locked
+ * here, a concurrent submit's own conditional `updateMany` blocks until this
+ * transaction commits or rolls back, then re-evaluates against the row's
+ * true current state.
  */
 export async function editDraftOrder(
   id: string,
   input: EditPurchaseOrderInput,
 ): Promise<PurchaseOrderWithLines> {
   return prisma.$transaction(async (tx) => {
-    const existing = await tx.purchaseOrder.findUnique({ where: { id } });
+    const rows = await tx.$queryRaw<
+      { id: string; status: string }[]
+    >`SELECT id, status FROM purchase_orders WHERE id = ${id}::uuid FOR UPDATE`;
+    const existing = rows[0];
     if (!existing) {
       throw new NotFoundError();
     }

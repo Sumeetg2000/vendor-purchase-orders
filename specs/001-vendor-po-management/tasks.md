@@ -531,6 +531,47 @@ ones, correctly filtered and aged, without exercising any other feature first.
 
 ---
 
+## Phase 9: Concurrency Hardening
+
+**Purpose**: Two confirmed correctness bugs against existing FRs (FR-008 and FR-011/FR-015),
+found by direct code review of `editDraftOrder` and `receiveGoods` against the row-locking
+pattern `submitPurchaseOrder`/`approvePurchaseOrder`/`cancelPurchaseOrder` already use — not
+new behavior or a new user story.
+
+- [X] T099 Integration test: a PATCH edit and a submit racing the same draft order never
+  both land inconsistently — either the edit commits and the subsequent submit locks in
+  the edited total, or submit locks the order first and the edit is correctly rejected as
+  locked; a submitted order's reported total must always match what is actually persisted
+  (FR-008) in `backend/tests/integration/po-edit-submit-race.test.ts`. Confirmed to fail
+  against the pre-fix `editDraftOrder` (its unlocked `findUnique` status check let an edit
+  land on an order a concurrent submit had already locked, silently changing the total of
+  a "locked" order).
+- [X] T100 Fix `editDraftOrder` in `backend/src/domain/purchaseOrder.service.ts`: replace
+  the unlocked status read with `SELECT ... FOR UPDATE` on the order row (mirroring
+  `approvePurchaseOrder`'s `$queryRaw` pattern), so a concurrent `submitPurchaseOrder`
+  blocks on and re-evaluates against this transaction's outcome instead of racing it
+  (FR-008; depends on T099)
+- [X] T101 Integration test: a goods receipt and a cancellation racing the same approved
+  order never let the receipt land after cancellation has actually committed — cancelling
+  an order with a genuinely-prior partial receipt remains valid (FR-016), only a receipt
+  racing a cancellation that wins the lock is rejected (FR-011, FR-015) in
+  `backend/tests/integration/po-receipt-cancel-race.test.ts`. Uses a deterministically
+  locked order row (not raw `Promise.all` timing) since comparing `receivedAt` against
+  `cancelledAt` proved unreliable — both are captured before their respective transactions
+  actually commit, so the comparison produces false failures under lock contention
+  regardless of whether the bug is present. Confirmed to fail against the pre-fix
+  `receiveGoods` (its unlocked status read let a receipt insert land after a concurrent
+  cancellation had already committed).
+- [X] T102 Fix `receiveGoods` in `backend/src/domain/goodsReceipt.service.ts`: replace the
+  unlocked status read (via the `purchaseOrder` include on the line lookup) with a
+  `SELECT ... FOR UPDATE` on the parent order row (same pattern as T100), so a concurrent
+  `cancelPurchaseOrder` blocks on and re-evaluates against this transaction's outcome
+  instead of racing it (FR-011, FR-015; depends on T101)
+
+**Checkpoint**: `npm test` passes with no regressions across all prior phases.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
@@ -552,6 +593,9 @@ ones, correctly filtered and aged, without exercising any other feature first.
   phase only because tests are written first, not because it can run before them.
 - **Polish (Phase 8)**: Depends on all five user stories (the audit-log endpoint reads
   entries written by US1–US4; the quickstart run exercises every story).
+- **Concurrency Hardening (Phase 9)**: Depends on US2 (`editDraftOrder`) and US3/US4
+  (`receiveGoods`, `cancelPurchaseOrder`) already existing — fixes to existing code, not a
+  new story.
 
 ### Within Each User Story
 

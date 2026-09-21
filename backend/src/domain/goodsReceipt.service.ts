@@ -35,6 +35,19 @@ function isCheckConstraintViolation(err: unknown): boolean {
  * statement blocks and isn't refreshed on unblock. This function only
  * translates that DB-level rejection into the same business_rule_violation
  * shape as an application-level check.
+ *
+ * The parent order's status is read via `SELECT ... FOR UPDATE` (same
+ * pattern as approvePurchaseOrder), not a plain `findUnique` — otherwise this
+ * status check and the receipt insert are two separate steps with no
+ * atomicity between them, so a concurrent `cancelPurchaseOrder` could commit
+ * in the gap and this function would still insert a receipt against a
+ * parent order that, by the time of insert, is no longer APPROVED (FR-011,
+ * FR-015). Locking the row makes a concurrent cancel's own conditional
+ * `updateMany` block until this transaction resolves, then re-evaluate
+ * against the row's true current state — so whichever of the two actually
+ * commits first is the one whose outcome holds; a cancel of an
+ * already-partially-received order remains valid (FR-016), only a receipt
+ * racing a cancel that beat it to commit is rejected.
  */
 export async function receiveGoods(
   actorUserId: string,
@@ -43,14 +56,19 @@ export async function receiveGoods(
   quantity: number,
 ): Promise<ReceiveGoodsResult> {
   return prisma.$transaction(async (tx) => {
-    const line = await tx.purchaseOrderLine.findUnique({
-      where: { id: lineId },
-      include: { purchaseOrder: true },
-    });
+    const line = await tx.purchaseOrderLine.findUnique({ where: { id: lineId } });
     if (!line || line.purchaseOrderId !== purchaseOrderId) {
       throw new NotFoundError();
     }
-    if (line.purchaseOrder.status !== "APPROVED") {
+
+    const orderRows = await tx.$queryRaw<
+      { id: string; status: string }[]
+    >`SELECT id, status FROM purchase_orders WHERE id = ${purchaseOrderId}::uuid FOR UPDATE`;
+    const order = orderRows[0];
+    if (!order) {
+      throw new NotFoundError();
+    }
+    if (order.status !== "APPROVED") {
       throw new BusinessRuleViolationError(
         "Goods can only be received against an approved purchase order",
       );
