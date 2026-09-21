@@ -102,6 +102,11 @@ export interface CreatePurchaseOrderInput {
   lines: CreatePurchaseOrderLineInput[];
 }
 
+export interface EditPurchaseOrderInput {
+  vendorId?: string;
+  lines?: CreatePurchaseOrderLineInput[];
+}
+
 export interface ListPurchaseOrdersFilter {
   vendorId?: string;
   status?: string;
@@ -123,6 +128,14 @@ export interface ReceiptResult {
   line: { receivedQty: number; outstandingQty: number };
 }
 
+export interface GoodsReceiptEventView {
+  id: string;
+  purchaseOrderLineId: string;
+  quantity: number;
+  receivedBy: string;
+  receivedAt: string;
+}
+
 export const api = {
   login: (email: string, password: string) =>
     request<LoginResult>("POST", "/api/auth/login", { email, password }),
@@ -136,6 +149,8 @@ export const api = {
     request<PurchaseOrder[]>("GET", `/api/purchase-orders${toQueryString(filter)}`),
   createPurchaseOrder: (input: CreatePurchaseOrderInput) =>
     request<PurchaseOrder>("POST", "/api/purchase-orders", input),
+  editPurchaseOrder: (id: string, input: EditPurchaseOrderInput) =>
+    request<PurchaseOrder>("PATCH", `/api/purchase-orders/${id}`, input),
   submitPurchaseOrder: (id: string) =>
     request<PurchaseOrder>("POST", `/api/purchase-orders/${id}/submit`),
   approvePurchaseOrder: (id: string) =>
@@ -148,6 +163,11 @@ export const api = {
     request<ReceiptResult>("POST", `/api/purchase-orders/${orderId}/lines/${lineId}/receipts`, {
       quantity,
     }),
+  getGoodsReceiptEvents: (orderId: string, lineId: string) =>
+    request<GoodsReceiptEventView[]>(
+      "GET",
+      `/api/purchase-orders/${orderId}/lines/${lineId}/receipts`,
+    ),
   getAuditLog: (orderId: string) =>
     request<AuditLogEntry[]>("GET", `/api/purchase-orders/${orderId}/audit-log`),
 

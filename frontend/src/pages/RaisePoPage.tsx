@@ -24,6 +24,7 @@ export default function RaisePoPage() {
   const [actingOrderId, setActingOrderId] = useState<string | null>(null);
   const [receivingOrder, setReceivingOrder] = useState<PurchaseOrder | null>(null);
   const [auditOrder, setAuditOrder] = useState<PurchaseOrder | null>(null);
+  const [editingOrderId, setEditingOrderId] = useState<string | null>(null);
 
   async function refresh() {
     setOrders(await api.listPurchaseOrders());
@@ -48,19 +49,46 @@ export default function RaisePoPage() {
     setLines((current) => current.filter((_, i) => i !== index));
   }
 
+  function startEdit(order: PurchaseOrder) {
+    setEditingOrderId(order.id);
+    setVendorId(order.vendorId);
+    setLines(
+      order.lines.map((line) => ({
+        description: line.description,
+        quantity: String(line.quantity),
+        unitPrice: line.unitPrice,
+      })),
+    );
+    setError(null);
+  }
+
+  function cancelEdit() {
+    setEditingOrderId(null);
+    setVendorId("");
+    setLines([{ ...EMPTY_LINE }]);
+    setError(null);
+  }
+
   async function handleCreate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setCreating(true);
     try {
-      await api.createPurchaseOrder({
+      const payload = {
         vendorId,
         lines: lines.map((line) => ({
           description: line.description,
           quantity: Number(line.quantity),
           unitPrice: Number(line.unitPrice),
         })),
-      });
+      };
+      if (editingOrderId) {
+        await api.editPurchaseOrder(editingOrderId, payload);
+        setEditingOrderId(null);
+        setVendorId("");
+      } else {
+        await api.createPurchaseOrder(payload);
+      }
       setLines([{ ...EMPTY_LINE }]);
       await refresh();
     } catch (err) {
@@ -85,7 +113,7 @@ export default function RaisePoPage() {
 
   return (
     <div>
-      <h2>Raise a Purchase Order</h2>
+      <h2>{editingOrderId ? "Edit Purchase Order" : "Raise a Purchase Order"}</h2>
       <form className="form-panel" onSubmit={handleCreate}>
         <div className="form-row">
           <div className="field">
@@ -151,8 +179,13 @@ export default function RaisePoPage() {
           <button type="button" className="btn" onClick={addLine}>
             Add line
           </button>
+          {editingOrderId && (
+            <button type="button" className="btn" onClick={cancelEdit}>
+              Cancel edit
+            </button>
+          )}
           <button type="submit" className="btn-primary" disabled={creating}>
-            Create draft
+            {editingOrderId ? "Save changes" : "Create draft"}
           </button>
         </div>
         {error && <p className="error-text">{error}</p>}
@@ -182,6 +215,11 @@ export default function RaisePoPage() {
               </td>
               <td className="num">{formatMoney(order.total)}</td>
               <td className="table-actions">
+                {order.status === "DRAFT" && (
+                  <button className="btn" onClick={() => startEdit(order)}>
+                    Edit
+                  </button>
+                )}
                 {order.status === "DRAFT" && (
                   <button
                     className="btn"

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "./Modal";
 import { api } from "../services/api";
+import type { GoodsReceiptEventView } from "../services/api";
 import type { PurchaseOrder } from "../types";
 
 interface ReceiveGoodsModalProps {
@@ -16,8 +17,33 @@ export default function ReceiveGoodsModal({ order, onClose, onReceived }: Receiv
   const [quantity, setQuantity] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<GoodsReceiptEventView[] | null>(null);
+  const [historyError, setHistoryError] = useState<string | null>(null);
 
   const selectedLine = order.lines.find((line) => line.id === lineId);
+
+  useEffect(() => {
+    setHistoryOpen(false);
+    setHistory(null);
+    setHistoryError(null);
+  }, [lineId]);
+
+  function toggleHistory() {
+    if (historyOpen) {
+      setHistoryOpen(false);
+      return;
+    }
+    setHistoryOpen(true);
+    if (!history && lineId) {
+      api
+        .getGoodsReceiptEvents(order.id, lineId)
+        .then(setHistory)
+        .catch((err: unknown) => {
+          setHistoryError(err instanceof Error ? err.message : "Request failed.");
+        });
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -53,6 +79,38 @@ export default function ReceiveGoodsModal({ order, onClose, onReceived }: Receiv
               </option>
             ))}
           </select>
+          {lineId && (
+            <button type="button" className="btn-link" onClick={toggleHistory}>
+              {historyOpen ? "Hide history" : "History"}
+            </button>
+          )}
+          {historyOpen && (
+            <>
+              {historyError && <p className="error-text">{historyError}</p>}
+              {!historyError && !history && <p className="hint-text">Loading…</p>}
+              {history && history.length === 0 && (
+                <p className="hint-text">No receipts recorded yet.</p>
+              )}
+              {history && history.length > 0 && (
+                <ul className="audit-log-list">
+                  {history.map((event) => (
+                    <li key={event.id} className="audit-log-entry">
+                      <div className="action">Qty {event.quantity}</div>
+                      <div className="meta">
+                        <span className="mono" title={event.receivedBy}>
+                          User {event.receivedBy.slice(0, 8)}…
+                        </span>{" "}
+                        &middot;{" "}
+                        <span className="num">
+                          {new Date(event.receivedAt).toLocaleString()}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
         </div>
         <div className="field">
           <label htmlFor="receipt-quantity">Quantity received</label>

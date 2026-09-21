@@ -48,8 +48,11 @@ audit trail) — every scenario there is also covered by an automated test in
 - `backend/` — Express + Prisma + PostgreSQL API, one `domain/` service module
   per aggregate (vendor, purchase order, approval, goods receipt, reporting,
   audit).
-- `frontend/` — a plain-JavaScript React SPA that only calls the API; no
-  business-rule logic lives here.
+- `frontend/` — a TypeScript React SPA that only calls the API; no
+  business-rule logic lives here. Supports editing a draft PO in place
+  (`PATCH /api/purchase-orders/:id`), viewing per-line goods-receipt history,
+  and a readable audit log (action labels plus per-action detail such as the
+  order number, receipt quantity/line, or rejection/cancellation reason).
 - Money totals and received quantities are computed by the service layer and
   independently re-derived by Postgres triggers + CHECK constraints, so the
   guarantee holds even against a write that bypasses the API.

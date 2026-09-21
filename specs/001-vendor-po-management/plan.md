@@ -16,7 +16,7 @@ ordered quantity. A Procurement Admin gets a database-efficient outstanding-orde
 vendor and age.
 
 Technical approach: an Express + TypeScript API backed by PostgreSQL via Prisma, with a
-plain-JavaScript React frontend. **The required guarantee** — that the order total and
+TypeScript React frontend. **The required guarantee** — that the order total and
 each line's outstanding quantity can never drift from their lines/receipts through any API
 call or application code path — is met by the Express service layer's validation and
 transactional writes, not application-memory checks alone, so the invariant holds under
@@ -32,11 +32,11 @@ explicit Express service layer, never a generic CRUD abstraction. The whole stac
 
 **Language/Version**: Node.js 20 LTS. Backend written in TypeScript 5.x (so Prisma's
 generated types are used directly, per the project's technical decisions). Frontend
-written in plain JavaScript (ES2022+, no TypeScript) using React 18.
+also written in TypeScript 5.x using React 18.
 
 **Primary Dependencies**: Express 4.x (API), Prisma 5.x (ORM + migrations, PostgreSQL
 driver), `jsonwebtoken` (JWT issuance/verification), `bcrypt` (password hashing), `zod`
-(request validation schemas), React 18 + Vite (frontend dev/build tooling, plain JS
+(request validation schemas), React 18 + Vite (frontend dev/build tooling, TypeScript
 template).
 
 **Storage**: PostgreSQL 16, accessed exclusively through Prisma from the API. Money
@@ -182,7 +182,7 @@ the spec requires three distinct user-facing roles with different screens (buyer
 procurement admin) sitting in front of one API. `backend/` holds the Express+Prisma
 service, structured as a modular monolith with one `domain/` module per aggregate
 (Constitution Principle X) rather than a generic CRUD/resource-controller pattern.
-`frontend/` is a plain-JavaScript React SPA that only calls the API — it holds no
+`frontend/` is a TypeScript React SPA that only calls the API — it holds no
 business-rule logic (Constitution Principle I). `docker-compose.yml` and a single
 `.env` file at the repo root wire the three runtime pieces together (Postgres, backend,
 frontend), satisfying the spec's Assumption that the system starts with `docker compose up`
